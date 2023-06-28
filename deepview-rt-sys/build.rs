@@ -1,3 +1,3 @@
 fn main() {
-	println!("cargo:rustc-link-lib=deepview-rt");
+    println!("cargo:rustc-link-lib=deepview-rt");
 }
