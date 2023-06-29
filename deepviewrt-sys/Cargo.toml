@@ -1,6 +1,7 @@
 [package]
 name = "deepviewrt-sys"
 description = "Low-level FFI bindings for deepview-rt Library"
+authors = ["Au-Zone Technologies"]
 readme = "README.md"
 license-file = "LICENSE"
 license = "AGPL-3.0"

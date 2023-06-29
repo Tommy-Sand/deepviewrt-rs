@@ -1,5 +1,6 @@
 [package]
 name = "deepviewrt"
+description = "DeepViewRT is a highly-optimized AI inference engine for embedded devices and part of the DeepView AI Middleware"
 authors = ["Au-Zone Technologies"]
 readme = "README.md"
 license-file = "LICENSE"
