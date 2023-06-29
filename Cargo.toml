@@ -1,0 +1,23 @@
+[package]
+name = "deepviewrt"
+authors = ["Au-Zone Technologies"]
+readme = "README.md"
+license-file = "LICENSE.txt"
+version = "0.1.0"
+edition = "2021"
+
+exclude = [
+    "/.github/*",
+    "/.gitattributes",
+    "/clippy.toml",
+    "/codecov.yml",
+]
+
+[lib]
+name = "deepviewrt"
+
+[workspace]
+members = ["deepviewrt-sys"]
+
+[dependencies]
+deepviewrt-sys = {version = "^0.1.0", path = "./deepviewrt-sys"}
