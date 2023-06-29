@@ -1,4 +1,4 @@
-use deepview_rt_sys as ffi;
+use deepviewrt_sys as ffi;
 use std::error::Error;
 use std::ffi::c_void;
 use std::io;

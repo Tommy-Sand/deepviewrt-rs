@@ -1,5 +1,5 @@
 [package]
-name = "deepview-rt-sys"
+name = "deepviewrt-sys"
 description = "Low-level FFI bindings for deepview-rt Library"
 readme = "README.md"
 license-file = "LICENSE.txt"

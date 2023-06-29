@@ -1,5 +1,5 @@
 [package]
-name = "deepview-rt"
+name = "deepviewrt"
 authors = ["Au-Zone Technologies"]
 readme = "README.md"
 license-file = "LICENSE.txt"
@@ -14,10 +14,10 @@ exclude = [
 ]
 
 [lib]
-name = "deepview_rt"
+name = "deepviewrt"
 
 [workspace]
-members = ["deepview-rt-sys"]
+members = ["deepviewrt-sys"]
 
 [dependencies]
-deepview-rt-sys = {version = "^0.1.0", path = "./deepview-rt-sys"}
+deepviewrt-sys = {version = "^0.1.0", path = "./deepviewrt-sys"}

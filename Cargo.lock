@@ -3,17 +3,17 @@
 version = 3
 
 [[package]]
-name = "deepview-rt-sys"
-version = "0.1.0"
-dependencies = [
- "libc",
-]
-
-[[package]]
 name = "deepviewrt"
 version = "0.1.0"
 dependencies = [
- "deepview-rt-sys",
+ "deepviewrt-sys",
+]
+
+[[package]]
+name = "deepviewrt-sys"
+version = "0.1.0"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
