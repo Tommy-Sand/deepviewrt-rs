@@ -64,6 +64,7 @@ jobs:
           sed -i "s/0.0.0/$GIT_VERSION/g" Cargo.toml
           git add Cargo.toml
           git commit -m "Deploy $GIT_VERSION"
+          git status
       - name: Publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
