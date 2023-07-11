@@ -3,14 +3,13 @@ name = "deepviewrt"
 description = "DeepViewRT is a highly-optimized AI inference engine for embedded devices and part of the DeepView AI Middleware"
 authors = ["Au-Zone Technologies"]
 readme = "README.md"
-license-file = "LICENSE"
 license = "AGPL-3.0"
 homepage = "https://support.deepviewml.com"
 repository = "https://github.com/DeepViewML/deepviewrt-rs"
 documentation = "https://docs.rs/deepviewrt"
 keywords = ["deepview", "visionpack"]
 categories = ["computer-vision", "multimedia::video", "api-bindings"]
-version = "0.1.0"
+version = "0.0.0"
 edition = "2021"
 
 exclude = [
@@ -27,4 +26,4 @@ name = "deepviewrt"
 members = ["deepviewrt-sys"]
 
 [dependencies]
-deepviewrt-sys = {version = "^0.1.0", path = "./deepviewrt-sys"}
+deepviewrt-sys = {version = "0.0.0", path = "deepviewrt-sys"}

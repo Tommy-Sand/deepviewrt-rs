@@ -1,8 +1,5 @@
 use deepviewrt_sys as ffi;
-use std::error::Error;
-use std::ffi::c_void;
-use std::io;
-use std::ops::Deref;
+use std::{error::Error, ffi::c_void, io, ops::Deref};
 
 pub enum NNTensorType {
     RAW = 0,
