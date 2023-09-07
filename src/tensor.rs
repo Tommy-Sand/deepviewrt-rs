@@ -42,14 +42,27 @@ impl TryFrom<u32> for TensorType {
     }
 }
 
-pub struct NNTensor {
+pub struct Tensor {
     owned: bool,
     ptr: *mut ffi::NNTensor,
 }
 
-unsafe impl Send for NNTensor {}
+pub struct TensorData<'a, T> {
+    tensor: &'a Tensor,
+    data: &'a [T],
+}
 
-impl Deref for NNTensor {
+impl<'a, T> Deref for TensorData<'_, T> {
+    type Target = [T];
+
+    fn deref(&self) -> &Self::Target {
+        return self.data;
+    }
+}
+
+unsafe impl Send for Tensor {}
+
+impl Deref for Tensor {
     type Target = ffi::NNTensor;
 
     fn deref(&self) -> &Self::Target {
@@ -57,7 +70,7 @@ impl Deref for NNTensor {
     }
 }
 
-impl NNTensor {
+impl Tensor {
     pub fn new() -> Result<Self, Error> {
         let ptr = unsafe {
             ffi::nn_tensor_init(
@@ -83,7 +96,7 @@ impl NNTensor {
         return Ok(());
     }
 
-    pub fn dequantize(&self, dest: &mut NNTensor) -> Result<(), Error> {
+    pub fn dequantize(&self, dest: &mut Self) -> Result<(), Error> {
         let ret = unsafe { ffi::nn_tensor_dequantize(dest.to_mut_ptr(), self.ptr) };
         if ret != ffi::NNError_NN_SUCCESS {
             return Err(Error::from(ret));
@@ -119,33 +132,124 @@ impl NNTensor {
         return unsafe { ffi::nn_tensor_size(self.ptr) };
     }
 
-    pub fn mapro_u8(&self) -> Result<&[u8], Error> {
+    fn mapro(&self) -> Result<*const ::std::os::raw::c_void, Error> {
         let ret = unsafe { ffi::nn_tensor_mapro(self.ptr) };
         if ret.is_null() {
             return Err(Error::WrapperError("nn_tensor_mapro failed".to_string()));
         }
-        let ptr = ret as *const u8;
-        let vol = self.volume();
-        let sret = unsafe { std::slice::from_raw_parts(ptr, vol as usize) };
-        return Ok(sret);
+        return Ok(ret);
     }
 
-    /*
-    pub fn mapwo_u8(&self, height: i32, width: i32, depth: i32) -> Result<&mut [u8], Error> {
-
+    pub fn mapro_u8<'a>(&'a self) -> Result<TensorData<'a, u8>, Error> {
+        let ptr = self.mapro()? as *const u8;
+        let size = self.size();
+        let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
+        return Ok(TensorData {
+            tensor: self,
+            data: sret,
+        });
     }
-    */
 
-    pub fn unmap(&self) {
+    pub fn mapro_u16<'a>(&'a self) -> Result<TensorData<'a, u16>, Error> {
+        let ptr = self.mapro()? as *const u16;
+        let size = self.size();
+        let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
+        return Ok(TensorData {
+            tensor: self,
+            data: sret,
+        });
+    }
+
+    pub fn mapro_u32<'a>(&'a self) -> Result<TensorData<'a, u32>, Error> {
+        let ptr = self.mapro()? as *const u32;
+        let size = self.size();
+        let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
+        return Ok(TensorData {
+            tensor: self,
+            data: sret,
+        });
+    }
+
+    pub fn mapro_u64<'a>(&'a self) -> Result<TensorData<'a, u64>, Error> {
+        let ptr = self.mapro()? as *const u64;
+        let size = self.size();
+        let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
+        return Ok(TensorData {
+            tensor: self,
+            data: sret,
+        });
+    }
+
+    pub fn mapro_i8<'a>(&'a self) -> Result<TensorData<'a, i8>, Error> {
+        let ptr = self.mapro()? as *const i8;
+        let size = self.size();
+        let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
+        return Ok(TensorData {
+            tensor: self,
+            data: sret,
+        });
+    }
+
+    pub fn mapro_i16<'a>(&'a self) -> Result<TensorData<'a, i16>, Error> {
+        let ptr = self.mapro()? as *const i16;
+        let size = self.size();
+        let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
+        return Ok(TensorData {
+            tensor: self,
+            data: sret,
+        });
+    }
+
+    pub fn mapro_i32<'a>(&'a self) -> Result<TensorData<'a, i32>, Error> {
+        let ptr = self.mapro()? as *const i32;
+        let size = self.size();
+        let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
+        return Ok(TensorData {
+            tensor: self,
+            data: sret,
+        });
+    }
+
+    pub fn mapro_i64<'a>(&'a self) -> Result<TensorData<'a, i64>, Error> {
+        let ptr = self.mapro()? as *const i64;
+        let size = self.size();
+        let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
+        return Ok(TensorData {
+            tensor: self,
+            data: sret,
+        });
+    }
+
+    pub fn mapro_f32<'a>(&'a self) -> Result<TensorData<'a, f32>, Error> {
+        let ptr = self.mapro()? as *const f32;
+        let size = self.size();
+        let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
+        return Ok(TensorData {
+            tensor: self,
+            data: sret,
+        });
+    }
+
+    pub fn mapro_f64<'a>(&'a self) -> Result<TensorData<'a, f64>, Error> {
+        let ptr = self.mapro()? as *const f64;
+        let size = self.size();
+        let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
+        return Ok(TensorData {
+            tensor: self,
+            data: sret,
+        });
+    }
+
+    fn unmap(&self) {
         unsafe { ffi::nn_tensor_unmap(self.ptr) };
     }
 
-    pub unsafe fn from_ptr(ptr: *mut ffi::NNTensor, owned: bool) -> Result<NNTensor, Error> {
+    pub unsafe fn from_ptr(ptr: *mut ffi::NNTensor, owned: bool) -> Result<Self, Error> {
         if ptr.is_null() {
             return Err(Error::WrapperError(String::from("ptr is null")));
         }
 
-        return Ok(NNTensor { owned, ptr });
+        return Ok(Tensor { owned, ptr });
     }
 
     pub fn to_mut_ptr(&self) -> *mut ffi::NNTensor {
@@ -153,12 +257,18 @@ impl NNTensor {
     }
 }
 
-impl Drop for NNTensor {
+impl Drop for Tensor {
     fn drop(&mut self) {
         if self.owned {
             unsafe {
                 ffi::nn_tensor_release(self.ptr);
             };
         }
+    }
+}
+
+impl<'a, T> Drop for TensorData<'a, T> {
+    fn drop(&mut self) {
+        self.tensor.unmap();
     }
 }
