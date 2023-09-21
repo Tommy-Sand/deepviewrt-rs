@@ -6,6 +6,7 @@ use std::{
 };
 
 pub struct Engine {
+    owned: bool,
     ptr: *mut ffi::NNEngine,
 }
 
@@ -17,7 +18,10 @@ impl Engine {
                 "nn_engine_init memory allocated failed".to_string(),
             ));
         }
-        let engine = Self { ptr: init_ret };
+        let engine = Self {
+            owned: true,
+            ptr: init_ret,
+        };
 
         let engine_cstring = CString::new(path);
         if let Err(e) = engine_cstring {
@@ -34,7 +38,7 @@ impl Engine {
         if ptr.is_null() {
             return Err(Error::Null());
         }
-        return Ok(Engine { ptr });
+        return Ok(Engine { owned: false, ptr });
     }
 
     pub fn name(&self) -> Option<&str> {
@@ -54,10 +58,20 @@ impl Engine {
         let version_cstr = unsafe { CStr::from_ptr(ret) };
         return Some(version_cstr.to_str().unwrap());
     }
+
+    pub unsafe fn to_ptr(&self) -> *const ffi::NNEngine {
+        self.ptr
+    }
+
+    pub unsafe fn to_ptr_mut(&self) -> *mut ffi::NNEngine {
+        self.ptr as *mut ffi::NNEngine
+    }
 }
 
 impl Drop for Engine {
     fn drop(&mut self) {
-        unsafe { ffi::nn_engine_release(self.ptr) };
+        if self.owned {
+            unsafe { ffi::nn_engine_release(self.ptr) };
+        }
     }
 }
