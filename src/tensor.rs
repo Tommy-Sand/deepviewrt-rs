@@ -1,6 +1,6 @@
 use crate::{engine::Engine, error::Error};
 use deepviewrt_sys as ffi;
-use std::{ffi::c_void, io, ops::Deref};
+use std::{cell::Cell, ffi::c_void, io, ops::Deref};
 
 #[derive(Debug)]
 pub enum TensorType {
@@ -45,6 +45,8 @@ impl TryFrom<u32> for TensorType {
 pub struct Tensor {
     owned: bool,
     ptr: *mut ffi::NNTensor,
+    engine: Cell<Option<Engine>>,
+    scales: Option<Vec<f32>>,
 }
 
 pub struct TensorData<'a, T> {
@@ -83,7 +85,12 @@ impl Tensor {
             return Err(Error::IoError(err_kind));
         }
 
-        return Ok(Self { owned: true, ptr });
+        return Ok(Self {
+            owned: true,
+            engine: Cell::new(None),
+            ptr,
+            scales: None,
+        });
     }
 
     pub fn alloc(&self, ttype: TensorType, n_dims: i32, shape: &[i32; 3]) -> Result<(), Error> {
@@ -105,17 +112,28 @@ impl Tensor {
         return Ok(());
     }
 
+    pub fn set_tensor_type(&self, tensor_type: TensorType) -> Result<(), Error> {
+        let tensor_type_ = TensorType::try_from(tensor_type as u32).unwrap();
+        let ret = unsafe { ffi::nn_tensor_set_type(self.ptr, tensor_type_ as ffi::NNTensorType) };
+        if ret != ffi::NNError_NN_SUCCESS {
+            return Err(Error::from(ret));
+        }
+        return Ok(());
+    }
+
     pub fn tensor_type(&self) -> TensorType {
         let ret = unsafe { ffi::nn_tensor_type(self.ptr) };
         return TensorType::try_from(ret).unwrap();
     }
 
-    pub fn engine(&self) -> Option<Engine> {
+    pub fn engine(&self) -> Option<&Engine> {
         let ret = unsafe { ffi::nn_tensor_engine(self.ptr) };
         if ret.is_null() {
             return None;
         }
-        return Some(Engine::wrap(ret).unwrap());
+        let engine = Engine::wrap(ret).unwrap();
+        self.engine.set(Some(engine));
+        return unsafe { (&*self.engine.as_ptr()).as_ref() };
     }
 
     pub fn shape(&self) -> &[i32] {
@@ -124,12 +142,42 @@ impl Tensor {
         return ra;
     }
 
+    pub fn dims(&self) -> i32 {
+        return unsafe { ffi::nn_tensor_dims(self.ptr) };
+    }
+
     pub fn volume(&self) -> i32 {
         return unsafe { ffi::nn_tensor_volume(self.ptr) };
     }
 
     pub fn size(&self) -> i32 {
         return unsafe { ffi::nn_tensor_size(self.ptr) };
+    }
+
+    pub fn axis(&self) -> i16 {
+        return unsafe { ffi::nn_tensor_axis(self.ptr) as i16 };
+    }
+
+    pub fn zeros(&self) -> Result<&[i32], Error> {
+        let mut zeros: usize = 0;
+        let ret = unsafe { ffi::nn_tensor_zeros(self.ptr, &mut zeros as *mut usize) };
+        if ret.is_null() {
+            return Err(Error::WrapperError(String::from("zeros returned null")));
+        }
+        return unsafe { Ok(std::slice::from_raw_parts(ret, zeros)) };
+    }
+
+    pub fn set_scales(&mut self, scales: &[f32]) -> Result<(), Error> {
+        self.scales = Some(scales.to_vec());
+        if scales.len() < (self.axis() as usize) || scales.len() != 1 {
+            return Err(Error::WrapperError(String::from(
+                "scales should either have length of 1 or equal to channel_dimension (axis)",
+            )));
+        }
+        unsafe {
+            ffi::nn_tensor_set_scales(self.ptr, scales.len(), scales.as_ptr() as *const f32, 0)
+        };
+        return Ok(());
     }
 
     fn mapro(&self) -> Result<*const ::std::os::raw::c_void, Error> {
@@ -240,7 +288,7 @@ impl Tensor {
         });
     }
 
-    fn unmap(&self) {
+    unsafe fn unmap(&self) {
         unsafe { ffi::nn_tensor_unmap(self.ptr) };
     }
 
@@ -249,7 +297,12 @@ impl Tensor {
             return Err(Error::WrapperError(String::from("ptr is null")));
         }
 
-        return Ok(Tensor { owned, ptr });
+        return Ok(Tensor {
+            owned,
+            engine: Cell::new(None),
+            ptr,
+            scales: None,
+        });
     }
 
     pub fn to_mut_ptr(&self) -> *mut ffi::NNTensor {
@@ -269,6 +322,6 @@ impl Drop for Tensor {
 
 impl<'a, T> Drop for TensorData<'a, T> {
     fn drop(&mut self) {
-        self.tensor.unmap();
+        unsafe { self.tensor.unmap() };
     }
 }
