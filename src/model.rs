@@ -115,18 +115,54 @@ impl Model {
         return Ok(ret);
     }
 
-    /*
     pub fn layer_type(&self, index: usize) -> Result<&str, Error> {
-        let ret = unsafe { ffi::nn_model_layer_type() };
+        let ret = unsafe { ffi::nn_model_layer_type(self.ptr, index) };
+		if ret.is_null() {
+			return Err(Error::WrapperError(String::from("index out of range")));
+		}
 
+		let cstr = unsafe { CStr::from_ptr(ret) };
+		match cstr.to_str() {
+			Ok(s) => Ok(s),
+			Err(e) => Err(Error::WrapperError(e.to_string())),
+		}
     }
 
+	/*
     pub fn layer_type_id(&self, index: usize) -> Result<i16, Error> {
+		let ret = unsafe { ffi::nn_model_layer_type_id(self.ptr, index) };
+		if ret == 0 {
+			return Err(Error::WrapperError(String::from("index out of range")));
+		}
+    }
+	*/
 
+    pub fn layer_datatype(&self, index: usize) -> Result<&str, Error> {
+		let ret = unsafe { ffi::nn_model_layer_datatype(self.ptr, index) };
+		if ret.is_null() {
+			return Err(Error::WrapperError(String::from("index out of range")));
+		}
+
+		let cstr = unsafe { CStr::from_ptr(ret) };
+		match cstr.to_str() {
+			Ok(s) => Ok(s),
+			Err(e) => Err(Error::WrapperError(e.to_string())),
+		}
     }
 
-    pub fn layer_datatype(&self, index: usize) -> Result<> {
+	pub fn layer_datatype_id() { }
 
-    }
-    */
+	pub fn layer_zeros() { }
+
+	pub fn layer_scales() { }
+
+	pub fn layer_axis() { }
+
+	pub fn layer_shape() { }
+
+	pub fn layer_inputs() { }
+
+	pub fn layer_parameter() { }
+
+	pub fn layer_parameter_shape() { }
 }

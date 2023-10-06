@@ -1,6 +1,6 @@
 use crate::{engine::Engine, error::Error, model::Model, tensor::Tensor};
 use deepviewrt_sys as ffi;
-use std::{cell::Cell, ffi::CString, ptr};
+use std::{cell::{ Cell, RefCell }, ffi::CString, ptr};
 
 pub struct Context {
     owned: bool,
@@ -8,8 +8,8 @@ pub struct Context {
     engine: Cell<Option<Engine>>,
     model_data: Option<Vec<u8>>,
     model: Cell<Option<Model>>,
-    //	tensors: Cell
-    //	tensor_ref: Vec<(i32, Tensor)>
+    tensors: RefCell<Vec<(i32, Tensor)>>,
+//  tensors_ref: Vec<(i32, Tensor)>,
 }
 
 impl Context {
@@ -32,12 +32,16 @@ impl Context {
                 "nn_context_init returned null",
             )));
         }
+		let tensors_ref: Vec<(i32, Tensor)> = Vec::new();
+		let tensors = RefCell::new(tensors_ref);
         Ok(Context {
             owned: true,
             ptr: ret,
             engine: Cell::new(Some(engine)),
             model_data: None,
             model: Cell::new(None),
+			tensors,
+			//&*tensors.as_ptr(),
         })
     }
 
@@ -122,40 +126,85 @@ impl Context {
 
     pub fn run_model(&self) {}
 
-    pub fn tensor(&self, name: &str) -> Option<Tensor> {
+    pub fn tensor(&self, name: &str) -> Result<&Tensor, Error> {
         let cname = match CString::new(name) {
             Ok(cname) => cname,
-            Err(_) => return None,
+            Err(e) => return Err(Error::WrapperError(e.to_string())),
         };
 
         let ret = unsafe { ffi::nn_context_tensor(self.ptr, cname.into_raw()) };
         if ret.is_null() {
-            return None;
+            return Err(Error::WrapperError(String::from("No tensor found")));
         }
+
+		let index = match self.model() {
+			Some(model) => {
+				model.layer_lookup(name)
+			},
+			None => return Err(Error::WrapperError(String::from("Could not get index"))),
+		}.unwrap();
+
         let tensor = unsafe { Tensor::from_ptr(ret, false).unwrap() };
-        return Some(tensor);
+		match self.tensors.try_borrow_mut() {
+			Ok(mut borrowed) => {
+				borrowed.push((index, tensor))
+			}
+			Err(e) => {
+				return Err(Error::WrapperError(e.to_string()));
+			}
+		};
+		let tensors_ref = unsafe { &*self.tensors.as_ptr() };
+		return {
+			for (index_, tensor) in tensors_ref {
+				if index_ == &index {
+					return Ok(tensor)
+				}	
+			}
+			Err(Error::WrapperError(String::from("Tensor not found")))
+		};
     }
 
-    pub fn tensor_index(&self, index: usize) -> Option<Tensor> {
+    pub fn tensor_index(&self, index: usize) -> Result<&Tensor, Error> {
         let ret = unsafe { ffi::nn_context_tensor_index(self.ptr, index) };
         if ret.is_null() {
-            return None;
+            return Err(Error::WrapperError(String::from("No tensor found")));
         }
         let tensor = unsafe { Tensor::from_ptr(ret, false).unwrap() };
-        return Some(tensor);
-    }
+
+		match self.tensors.try_borrow_mut() {
+			Ok(mut borrowed) => {
+				borrowed.push((index as i32, tensor));
+			},
+			Err(e) => {
+				return Err(Error::WrapperError(e.to_string()));
+			}
+		}
+		let tensors_ref = unsafe { &*self.tensors.as_ptr() };
+		return {
+			for (index_, tensor) in tensors_ref {
+				if index_ == &(index as i32) {
+					return Ok(tensor)
+				}	
+			}
+			Err(Error::WrapperError(String::from("Tensor not found")))
+		};   
+	}
 
     pub unsafe fn from_ptr(ptr: *mut ffi::NNContext) -> Result<Self, Error> {
         if ptr.is_null() {
             return Err(Error::WrapperError(String::from("ptr is null")));
         }
 
+		let tensors_ref: Vec<(i32, Tensor)> = Vec::new();
+		let tensors = RefCell::new(tensors_ref);
         return Ok(Self {
             owned: false,
             ptr,
             engine: Cell::new(None),
             model_data: None,
             model: Cell::new(None),
+			tensors,
+			//tensors_ref
         });
     }
 }
