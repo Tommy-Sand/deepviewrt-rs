@@ -165,6 +165,33 @@ impl Context {
         };
     }
 
+    pub fn tensor_index_mut(&mut self, index: usize) -> Result<&mut Tensor, Error> {
+        let ret = unsafe { ffi::nn_context_tensor_index(self.ptr, index) };
+        if ret.is_null() {
+            return Err(Error::WrapperError(String::from("No tensor found")));
+        }
+        let tensor = unsafe { Tensor::from_ptr(ret, false).unwrap() };
+
+        match self.tensors.try_borrow_mut() {
+            Ok(mut borrowed) => {
+                borrowed.push((index as i32, tensor));
+            }
+            Err(e) => {
+                return Err(Error::WrapperError(e.to_string()));
+            }
+        }
+        let tensors_ref = unsafe { self.tensors.get_mut() };
+        return {
+            for (index_, tensor) in tensors_ref {
+                if index_ == &(index as i32) {
+                    return Ok(tensor);
+                }
+            }
+            Err(Error::WrapperError(String::from("Tensor not found")))
+        };
+    }
+
+
     pub fn tensor_index(&self, index: usize) -> Result<&Tensor, Error> {
         let ret = unsafe { ffi::nn_context_tensor_index(self.ptr, index) };
         if ret.is_null() {
