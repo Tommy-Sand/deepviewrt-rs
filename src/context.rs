@@ -13,7 +13,6 @@ pub struct Context {
     model_data: Option<Vec<u8>>,
     model: Cell<Option<Model>>,
     tensors: RefCell<Vec<(i32, Tensor)>>,
-    //  tensors_ref: Vec<(i32, Tensor)>,
 }
 
 impl Context {
@@ -45,7 +44,6 @@ impl Context {
             model_data: None,
             model: Cell::new(None),
             tensors,
-            //&*tensors.as_ptr(),
         })
     }
 
@@ -124,6 +122,8 @@ impl Context {
 
     pub fn unload_model(&mut self) {
         unsafe { ffi::nn_context_model_unload(self.ptr) };
+        let tensors_ref: Vec<(i32, Tensor)> = Vec::new();
+        self.tensors = RefCell::new(tensors_ref);
         self.model_data = None;
         self.model.set(None);
     }
