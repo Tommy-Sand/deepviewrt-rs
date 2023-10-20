@@ -207,11 +207,11 @@ impl Model {
         return unsafe { Ok(std::slice::from_raw_parts(ret, n_dims as usize)) };
     }
 
-	/*
+    /*
     pub fn layer_inputs(&self, index: usize) {}
 
     pub fn layer_parameter() {}
 
     pub fn layer_parameter_shape() {}
-	*/
+    */
 }
