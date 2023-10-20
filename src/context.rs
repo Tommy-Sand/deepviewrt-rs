@@ -180,7 +180,7 @@ impl Context {
                 return Err(Error::WrapperError(e.to_string()));
             }
         }
-        let tensors_ref = unsafe { self.tensors.get_mut() };
+        let tensors_ref = self.tensors.get_mut();
         return {
             for (index_, tensor) in tensors_ref {
                 if index_ == &(index as i32) {

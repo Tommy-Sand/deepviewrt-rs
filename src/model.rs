@@ -199,7 +199,7 @@ impl Model {
     }
 
     pub fn layer_shape(&self, index: usize) -> Result<&[i32], Error> {
-        let mut n_dims: isize = -1;
+        let n_dims: isize = -1;
         let ret = unsafe { ffi::nn_model_layer_shape(self.ptr, index, &mut (n_dims as usize)) };
         if ret.is_null() || n_dims == -1 {
             return Err(Error::WrapperError(String::from("Index out of range")));
@@ -207,9 +207,11 @@ impl Model {
         return unsafe { Ok(std::slice::from_raw_parts(ret, n_dims as usize)) };
     }
 
+	/*
     pub fn layer_inputs(&self, index: usize) {}
 
     pub fn layer_parameter() {}
 
     pub fn layer_parameter_shape() {}
+	*/
 }
