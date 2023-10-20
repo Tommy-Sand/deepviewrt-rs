@@ -191,7 +191,6 @@ impl Context {
         };
     }
 
-
     pub fn tensor_index(&self, index: usize) -> Result<&Tensor, Error> {
         let ret = unsafe { ffi::nn_context_tensor_index(self.ptr, index) };
         if ret.is_null() {
