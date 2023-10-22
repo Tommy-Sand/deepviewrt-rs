@@ -63,6 +63,7 @@ impl<'a, T> Deref for TensorData<'_, T> {
 }
 
 unsafe impl Send for Tensor {}
+unsafe impl Sync for Tensor {}
 
 impl Deref for Tensor {
     type Target = ffi::NNTensor;
