@@ -20,10 +20,15 @@ impl Context {
         return unsafe { ffi::nn_context_sizeof() };
     }
 
-    pub fn new(engine: Engine, memory_size: usize, cache_size: usize) -> Result<Context, Error> {
+    pub fn new(engine: Option<Engine>, memory_size: usize, cache_size: usize) -> Result<Context, Error> {
+        let engine_ptr = if let Some(engine_) = &engine {
+            unsafe { engine_.to_ptr_mut() }
+        } else {
+            ptr::null_mut()
+        };
         let ret = unsafe {
             ffi::nn_context_init(
-                engine.to_ptr_mut(),
+                engine_ptr,
                 memory_size,
                 ptr::null_mut(),
                 cache_size,
@@ -40,7 +45,7 @@ impl Context {
         Ok(Context {
             owned: true,
             ptr: ret,
-            engine: Cell::new(Some(engine)),
+            engine: Cell::new(engine),
             model_data: None,
             model: Cell::new(None),
             tensors,
