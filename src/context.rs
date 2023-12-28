@@ -236,7 +236,6 @@ impl Context {
             model_data: None,
             model: Cell::new(None),
             tensors,
-            //tensors_ref
         });
     }
 }
