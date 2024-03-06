@@ -7,6 +7,7 @@ pub enum Error {
     WrapperError(String),
     Null(),
     IoError(io::ErrorKind),
+    Utf8Error(std::str::Utf8Error),
 }
 
 impl From<ffi::NNError> for Error {
@@ -23,6 +24,12 @@ impl From<ffi::NNError> for Error {
     }
 }
 
+impl From<std::str::Utf8Error> for Error {
+    fn from(value: std::str::Utf8Error) -> Self {
+        Error::Utf8Error(value)
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -31,6 +38,9 @@ impl fmt::Display for Error {
             Error::Null() => return write!(f, "null/unknown error message unavailable"),
             Error::IoError(kind) => {
                 let e = std::io::Error::from(*kind);
+                return write!(f, "{}", e);
+            }
+            Error::Utf8Error(e) => {
                 return write!(f, "{}", e);
             }
         }
