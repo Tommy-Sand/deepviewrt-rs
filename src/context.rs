@@ -81,13 +81,6 @@ impl Context {
     }
 
     pub fn model(&self) -> Option<&Model> {
-        if !self.model.as_ptr().is_null() {
-            let model_ref = unsafe { &*self.model.as_ptr() };
-            if model_ref.is_some() {
-                return model_ref.as_ref();
-            }
-        }
-
         let ret = unsafe { ffi::nn_context_model(self.ptr) };
         if ret.is_null() {
             return None;
@@ -236,6 +229,7 @@ impl Context {
             model_data: None,
             model: Cell::new(None),
             tensors,
+            //tensors_ref
         });
     }
 }
