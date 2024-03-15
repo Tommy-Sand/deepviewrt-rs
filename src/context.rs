@@ -20,7 +20,11 @@ impl Context {
         return unsafe { ffi::nn_context_sizeof() };
     }
 
-    pub fn new(engine: Option<Engine>, memory_size: usize, cache_size: usize) -> Result<Context, Error> {
+    pub fn new(
+        engine: Option<Engine>,
+        memory_size: usize,
+        cache_size: usize,
+    ) -> Result<Context, Error> {
         let engine_ptr = if let Some(engine_) = &engine {
             unsafe { engine_.to_ptr_mut() }
         } else {

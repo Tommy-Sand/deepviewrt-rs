@@ -1,6 +1,11 @@
 use crate::{engine::Engine, error::Error};
 use deepviewrt_sys as ffi;
-use std::{cell::Cell, ffi::{CStr, c_void}, io, ops::Deref};
+use std::{
+    cell::Cell,
+    ffi::{c_void, CStr},
+    io,
+    ops::Deref,
+};
 
 #[derive(Debug)]
 pub enum TensorType {
@@ -134,7 +139,7 @@ impl Tensor {
         }
 
         return Ok(());
-     }
+    }
 
     pub fn set_tensor_type(&self, tensor_type: TensorType) -> Result<(), Error> {
         let tensor_type_ = TensorType::try_from(tensor_type as u32).unwrap();
@@ -207,11 +212,7 @@ impl Tensor {
     pub fn set_aux_object<T>(&self, aux_object: &mut T) {
         let ptr = aux_object as *mut T;
         unsafe {
-            ffi::nn_tensor_set_aux_object(
-                self.ptr,
-                ptr as *mut std::ffi::c_void,
-                None,
-            ); 
+            ffi::nn_tensor_set_aux_object(self.ptr, ptr as *mut std::ffi::c_void, None);
         };
     }
 
@@ -234,7 +235,7 @@ impl Tensor {
                     tensor: self,
                     data: MappedData::RAW(sret),
                 });
-            },
+            }
             TensorType::STR => {
                 let ptr = self.mapro_()? as *const i8;
                 let cstr = unsafe { CStr::from_ptr(ptr) };
@@ -243,7 +244,7 @@ impl Tensor {
                     tensor: self,
                     data: MappedData::STR(str_temp),
                 });
-            },
+            }
             TensorType::I8 => {
                 let ptr = self.mapro_()? as *const i8;
                 let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
@@ -251,7 +252,7 @@ impl Tensor {
                     tensor: self,
                     data: MappedData::I8(sret),
                 });
-            },
+            }
             TensorType::U8 => {
                 let ptr = self.mapro_()? as *const u8;
                 let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
@@ -259,7 +260,7 @@ impl Tensor {
                     tensor: self,
                     data: MappedData::U8(sret),
                 });
-            },
+            }
             TensorType::I16 => {
                 let ptr = self.mapro_()? as *const i16;
                 let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
@@ -267,7 +268,7 @@ impl Tensor {
                     tensor: self,
                     data: MappedData::I16(sret),
                 });
-            },
+            }
             TensorType::U16 => {
                 let ptr = self.mapro_()? as *const u16;
                 let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
@@ -275,7 +276,7 @@ impl Tensor {
                     tensor: self,
                     data: MappedData::U16(sret),
                 });
-            },
+            }
             TensorType::I32 => {
                 let ptr = self.mapro_()? as *const i32;
                 let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
@@ -283,7 +284,7 @@ impl Tensor {
                     tensor: self,
                     data: MappedData::I32(sret),
                 });
-            },
+            }
             TensorType::U32 => {
                 let ptr = self.mapro_()? as *const u32;
                 let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
@@ -291,7 +292,7 @@ impl Tensor {
                     tensor: self,
                     data: MappedData::U32(sret),
                 });
-            },
+            }
             TensorType::I64 => {
                 let ptr = self.mapro_()? as *const i64;
                 let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
@@ -299,7 +300,7 @@ impl Tensor {
                     tensor: self,
                     data: MappedData::I64(sret),
                 });
-            },
+            }
             TensorType::U64 => {
                 let ptr = self.mapro_()? as *const u64;
                 let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
@@ -307,7 +308,7 @@ impl Tensor {
                     tensor: self,
                     data: MappedData::U64(sret),
                 });
-            },
+            }
             TensorType::F16 => {
                 let ptr = self.mapro_()? as *const u8;
                 let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
@@ -315,7 +316,7 @@ impl Tensor {
                     tensor: self,
                     data: MappedData::RAW(sret),
                 });
-            },
+            }
             TensorType::F32 => {
                 let ptr = self.mapro_()? as *const f32;
                 let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
@@ -323,7 +324,7 @@ impl Tensor {
                     tensor: self,
                     data: MappedData::F32(sret),
                 });
-            },
+            }
             TensorType::F64 => {
                 let ptr = self.mapro_()? as *const f64;
                 let sret = unsafe { std::slice::from_raw_parts(ptr, size as usize) };
